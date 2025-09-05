@@ -2,7 +2,7 @@ pipeline {
   agent any
 
   environment {
-    # optional: Docker registry (if you push to DockerHub/registry)
+    // Optional: Docker registry (if you push to DockerHub/registry)
     REGISTRY = ""
     IMAGE_TAG = "${env.BUILD_NUMBER}"
   }
@@ -14,20 +14,14 @@ pipeline {
       }
     }
 
-    stage('Build & Compose Deploy') {
+    stage('Build & Deploy with Docker Compose') {
       steps {
-        // make sure compose is available as `docker compose`
         sh '''
-          # print versions for debug
+          echo "=== Docker versions ==="
           docker --version || true
           docker compose version || true
 
-          # create .env from Jenkins credentials if you stored secrets in Jenkins (see notes)
-          # Example: if you have a Jenkins secret text credential id 'BACKEND_ENV' that contains
-          # KEY=val newline pairs, you can write it to backend/.env via pipeline credentials binding.
-
-          # Build & (re)create services using local Docker engine
-          docker compose -f docker-compose.yml pull || true
+          # Rebuild and run services
           docker compose -f docker-compose.yml up -d --build
         '''
       }
@@ -36,10 +30,10 @@ pipeline {
 
   post {
     success {
-      echo "Deployment succeeded"
+      echo "✅ Deployment succeeded"
     }
     failure {
-      echo "Deployment failed. Check logs."
+      echo "❌ Deployment failed. Check logs."
     }
   }
 }
